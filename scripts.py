@@ -1,5 +1,9 @@
 import random
 
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import MultipleObjectsReturned
+from django.http import Http404
+
 from datacenter.models import Schoolkid
 from datacenter.models import Mark
 from datacenter.models import Chastisement
@@ -9,18 +13,36 @@ from datacenter.models import Subject
 
 
 def get_schoolkid(schoolkid_name):
-    schoolkid = Schoolkid.objects.get(full_name__contains=schoolkid_name)
+    try:
+        schoolkid = get_object_or_404(
+            Schoolkid,
+            full_name__contains=schoolkid_name
+        )
 
-    return schoolkid
+        return schoolkid
+
+    except Http404:
+        print('ERROR! Schoolkid with name "{}" not found. Try refine your search query'.format(schoolkid_name))
+
+    except MultipleObjectsReturned:
+        print('ERROR! Finded more than one Schoolkid with name "{}". Try refine your search query'.format(schoolkid_name))
 
 
 def get_subject(subject_title, year_of_study):
-    subject = Subject.objects.get(
-        title=subject_title,
-        year_of_study=year_of_study
-    )
+    try:
+        subject = get_object_or_404(
+            Subject,
+            title=subject_title,
+            year_of_study=year_of_study
+        )
 
-    return subject
+        return subject
+
+    except Http404:
+        print('ERROR! Subject with title "{}" and "{}" years of study not found. Try refine your search query'.format(subject_title, year_of_study))
+
+    except MultipleObjectsReturned:
+        print('ERROR! Finded more than one Subject with title "{}" and "{}" years of study. Try refine your search query'.format(subject_title, year_of_study))
 
 
 def fix_marks(schoolkid_name):

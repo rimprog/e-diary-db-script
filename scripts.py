@@ -5,18 +5,30 @@ from datacenter.models import Mark
 from datacenter.models import Chastisement
 from datacenter.models import Commendation
 from datacenter.models import Lesson
+from datacenter.models import Subject
 
 
 def get_schoolkid(schoolkid_name):
-    schoolkids = Schoolkid.objects.all()
-    schoolkid = schoolkids.get(full_name__contains=schoolkid_name)
+    schoolkid = Schoolkid.objects.get(full_name__contains=schoolkid_name)
 
     return schoolkid
 
 
+def get_subject(subject_title, year_of_study):
+    subject = Subject.objects.get(
+        title=subject_title,
+        year_of_study=year_of_study
+    )
+
+    return subject
+
+
 def fix_marks(schoolkid_name):
     schoolkid = get_schoolkid(schoolkid_name)
-    schoolkid_bad_marks = Mark.objects.filter(schoolkid=schoolkid, points__in=[2,3])
+    schoolkid_bad_marks = Mark.objects.filter(
+        schoolkid=schoolkid,
+        points__in=[2,3]
+    )
 
     for bad_mark in schoolkid_bad_marks:
         good_mark = random.randint(4, 5)
@@ -30,9 +42,14 @@ def remove_chastisements(schoolkid_name):
     schoolkid_chastisiments.delete()
 
 
-def create_commendation(schoolkid_name, subject_name):
+def create_commendation(schoolkid_name, subject_title):
     schoolkid = get_schoolkid(schoolkid_name)
-    schoolkid_lessons = Lesson.objects.filter(year_of_study=schoolkid.year_of_study, group_letter=schoolkid.group_letter).filter(subject__title=subject_name)
+    subject = get_subject(subject_title, schoolkid.year_of_study)
+    schoolkid_lessons = Lesson.objects.filter(
+        year_of_study=schoolkid.year_of_study,
+        group_letter=schoolkid.group_letter,
+        subject=subject
+    )
     last_schoolkid_lesson = schoolkid_lessons.order_by('-date')[0]
 
     commendations = [
